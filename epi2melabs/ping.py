@@ -32,7 +32,9 @@ def _send_ping(data, session):
     return r.status_code
 
 
-class Pingu(object)
+class Pingu(object):
+    """Manage the sending of multiple pings."""
+
     def __init__(self, session=None):
         """Initialize pinger.
 
@@ -45,7 +47,7 @@ class Pingu(object)
         else:
             self.session = session
 
-    def send_container_ping(action, container, image_name, message=None):
+    def send_container_ping(self, action, container, image_name, message=None):
         """Ping a status message of a container.
 
         :param action: one of 'start', 'stop', or 'update'.
@@ -56,16 +58,17 @@ class Pingu(object)
         """
         allowed_status = {"start", "stop", "update"}
         if action not in allowed_status:
-            raise ValueError("`action` was not an allowed value.")
+            raise ValueError(
+                "`action` was not an allowed value, got: '{}'".format(action))
         return _send_ping({
-            "source": "container"
+            "source": "container",
             "action": action,
             "container_data": container.stats(stream=False),
             "image_data": image_name,
             "message": message},
             session=self.session)
 
-    def send_notebook_ping(action, notebook, message=None):
+    def send_notebook_ping(self, action, notebook, message=None):
         """Ping a message from a notebook.
 
         :param action: one of 'start', 'end', or 'update'.
@@ -74,9 +77,10 @@ class Pingu(object)
         """
         allowed_status = {"start", "stop", "update"}
         if action not in allowed_status:
-            raise ValueError("`action` was not an allowed value.")
+            raise ValueError(
+                "`action` was not an allowed value, got: '{}'".format(action))
         return _send_ping({
-            "source": "notebook"
+            "source": "notebook",
             "action": action,
             "notebook_name": notebook,
             "message": message},
