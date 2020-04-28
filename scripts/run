@@ -1,0 +1,46 @@
+#!/bin/bash
+# Notebook helped to run programs living in conda environments.
+
+# Searches for first argument in conda environments (/opt/conda/envs/*/*)
+# and if found activates the conda environment. 
+
+CONDA_DIR=/opt/conda
+source /opt/conda/etc/profile.d/conda.sh
+
+
+if [ "$#" -eq 1 ]; then
+    # e.g. run "bcftools query -i QUAL>10 -f '%CHROM %POS\n' ont.snp.vcf"
+    ARGS=( $@ )
+    CMD=${ARGS[0]}
+    unset ARGS[0]
+else
+    # e.g. run bcftools query -i 'QUAL>10' -f '%CHROM\ %POS\n' ont.snp.vcf
+    CMD=$1
+    shift
+    ARGS=$@
+fi
+
+if [ -z "${CMD}" ]; then
+    echo "Usage: run command option1 option2 ..."
+    echo
+    echo "e.g. run bcftools query -i 'QUAL>10' -f '%CHROM\ %POS\n' ont.snp.vcf"
+    echo "    spaces should be quoted and escaped with '\', as above."
+    exit 1
+fi
+
+envs=$(find ${CONDA_DIR}/envs/ -wholename "${CONDA_DIR}/envs/*/bin/${CMD}")
+if [ -z "${envs}" ]; then
+    # no env found, just run args as given
+    $@
+else
+    readarray -t paths <<<"${envs}"
+    name=$(basename $(dirname $(dirname ${paths[0]})))
+    conda activate ${name}
+    if [ "$#" -eq 1 ]; then
+        echo "${ARGS[@]}" | xargs $CMD
+    else
+        # additionally escape \n and \t
+        echo ${ARGS[@]} | sed 's/\\\([tn]\)/\\\\\1/g' | xargs $CMD
+    fi
+    conda deactivate
+fi

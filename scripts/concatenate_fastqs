@@ -1,0 +1,21 @@
+#!/bin/bash
+set -euo pipefail
+
+if [ "$#" -ne 2 ]; then
+    echo "Concatenates fastq files"
+    echo "Usage: $0 <input path> <output_file>"
+    exit 1
+fi
+
+path=$1
+output=$2
+
+files=$(find $path -name "*.fastq" -print -quit)
+
+if [[ -z "$files" ]]; then
+    echo "No files found"
+else
+    echo "Found files, concatenating"
+    find $path -name "*.fastq" | xargs cat > $output
+    echo "Written data to $output"
+fi
