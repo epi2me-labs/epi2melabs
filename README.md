@@ -10,7 +10,7 @@ Installation
 `epi2melabs` is easily installed in the standard python tradition:
 
     git clone --recursive https://github.com/epi2me-labs/epi2melabs.git
-    cd aplanat
+    cd epi2melabs
     pip install -r requirements.txt
     python setup.py install
 

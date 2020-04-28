@@ -6,7 +6,7 @@ import uuid
 import requests
 
 
-ENDPOINT = 'https://ping-dev.oxfordnanoportal.com/epilaby'
+ENDPOINT = 'https://ping.oxfordnanoportal.com/epilaby'
 
 
 def _send_ping(data, session):
@@ -40,11 +40,11 @@ class Pingu(object):
 
         :param session: a UUID session identifier
         """
-        if not isinstance(session, uuid.UUID):
-            raise ValueError('`session` should be a uuid.UUID object')
-        if self is None:
-            self.session = str(uuid.uuid4())
+        if session is None:
+            self.session = uuid.uuid4()
         else:
+            if not isinstance(session, uuid.UUID):
+                raise ValueError('`session` should be a uuid.UUID object')
             self.session = session
 
     def send_container_ping(self, action, container, image_name, message=None):
