@@ -63,7 +63,7 @@ setup(
     extras_require=extra_requires,
     # don't include any testing subpackages in dist
     packages=find_packages(exclude=['*.test', '*.test.*', 'test.*', 'test']),
-    package_data={__pkg_name__:['fontawesome*']},
+    package_data={__pkg_name__:[]},
     zip_safe=False,
     data_files=data_files,
     entry_points={
@@ -71,5 +71,8 @@ setup(
             #'name' = {}.package.module:function'.format(__pkg_name__)
         ]
     },
-    scripts=[]
+    scripts=[
+        'scripts/concatenate_fastqs',
+        'scripts/rationalise_fastq',
+        'scripts/run']
 )
