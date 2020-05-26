@@ -60,11 +60,12 @@ class Pingu(object):
             config.read(CONTAINER_META)
             self.hostname = config['Host']['hostname']
             self.opsys = config['Host']['operating_system']
-        except Exception as e:
+        except Exception:
             self.hostname = socket.gethostname()
             self.opsys = platform.platform()
 
-    def send_container_ping(self, action, container_stats, image_name, message=None):
+    def send_container_ping(
+            self, action, container_stats, image_name, message=None):
         """Ping a status message of a container.
 
         :param action: one of 'start', 'stop', or 'update'.
@@ -99,7 +100,7 @@ class Pingu(object):
         # check for spam
         if any((
                 action == self.state,
-                action == "stop" and self.state == None)):
+                action == "stop" and self.state is None)):
             return
         self.state = action
         return _send_ping({
