@@ -14,7 +14,7 @@ develop: venv/bin/activate
 
 test: venv/bin/activate
 	${IN_VENV} && pip install flake8 flake8-rst-docstrings flake8-docstrings flake8-import-order
-	${IN_VENV} && flake8 aplanat \
+	${IN_VENV} && flake8 epi2melabs \
 		--import-order-style google --application-import-names epi2melabs \
 		--statistics
 
