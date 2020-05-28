@@ -8,7 +8,7 @@ import uuid
 import requests
 
 
-ENDPOINT = 'https://ping-dev.oxfordnanoportal.com/epilaby'
+ENDPOINT = 'https://ping.oxfordnanoportal.com/epilaby'
 CONTAINER_META = os.path.join(os.sep, 'epi2melabs', '.epi2melabsmeta')
 
 
@@ -42,10 +42,13 @@ def _send_ping(data, session, hostname=None, opsys=None):
 class Pingu(object):
     """Manage the sending of multiple pings."""
 
-    def __init__(self, session=None):
+    def __init__(self, session=None, enabled=True):
         """Initialize pinger.
 
-        :param session: a UUID session identifier
+        :param session: a UUID session identifier.
+        :param enabled: if disabled methods sending pings will not send
+            data but rather return it to the caller. When enabled the
+            HTTP request response code is returned.
         """
         if session is None:
             session = uuid.uuid4()
@@ -53,6 +56,7 @@ class Pingu(object):
             if not isinstance(session, uuid.UUID):
                 raise ValueError('`session` should be a uuid.UUID object')
         self.session = session
+        self.enabled = enabled
         self.state = None
         self.hostname = None
         try:
@@ -78,18 +82,24 @@ class Pingu(object):
         if action not in allowed_status:
             raise ValueError(
                 "`action` was not an allowed value, got: '{}'".format(action))
-        return _send_ping({
-            "source": "container",
-            "action": action,
-            "container_data": container_stats,
-            "image_data": image_name,
-            "message": message},
-            session=self.session, hostname=self.hostname, opsys=self.opsys)
+        ping_data = {
+            "data": {
+                "source": "container",
+                "action": action,
+                "container_data": container_stats,
+                "image_data": image_name,
+                "message": message},
+            "session"=self.session, "hostname"=self.hostname,
+            "opsys"=self.opsys)
+        if self.enabled:
+            return _send_ping(**ping)
+        else:
+            return ping_data
 
     def send_notebook_ping(self, action, notebook, message=None):
         """Ping a message from a notebook.
 
-        :param action: one of 'start', 'end', or 'update'.
+        :param action: one of 'start', 'stop', or 'update'.
         :param notebook: name of notebook.
         :param message: optional message (must be json serializable).
         """
@@ -103,9 +113,15 @@ class Pingu(object):
                 action == "stop" and self.state is None)):
             return
         self.state = action
-        return _send_ping({
-            "source": "notebook",
-            "action": action,
-            "notebook_name": notebook,
-            "message": message},
-            session=self.session, hostname=self.hostname, opsys=self.opsys)
+        ping_data = {
+            "data": {
+                "source": "notebook",
+                "action": action,
+                "notebook_name": notebook,
+                "message": message},
+            "session": self.session, "hostname": self.hostname,
+            "opsys": self.opsys)
+        if self.enabled:
+            return _send_ping(**ping)
+        else:
+            return ping_data
