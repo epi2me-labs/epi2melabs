@@ -89,10 +89,10 @@ class Pingu(object):
                 "container_data": container_stats,
                 "image_data": image_name,
                 "message": message},
-            "session"=self.session, "hostname"=self.hostname,
-            "opsys"=self.opsys)
+            "session": self.session, "hostname": self.hostname,
+            "opsys": self.opsys}
         if self.enabled:
-            return _send_ping(**ping)
+            return _send_ping(**ping_data)
         else:
             return ping_data
 
@@ -120,8 +120,8 @@ class Pingu(object):
                 "notebook_name": notebook,
                 "message": message},
             "session": self.session, "hostname": self.hostname,
-            "opsys": self.opsys)
+            "opsys": self.opsys}
         if self.enabled:
-            return _send_ping(**ping)
+            return _send_ping(**ping_data)
         else:
             return ping_data
