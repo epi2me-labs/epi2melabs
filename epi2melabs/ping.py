@@ -1,15 +1,14 @@
 """Functions to send statistics to ONT."""
 import configparser
-import os
 import platform
 import socket
 import uuid
 
 import requests
 
+from epi2melabs import CONTAINER_META
 
 ENDPOINT = 'https://ping.oxfordnanoportal.com/epilaby'
-CONTAINER_META = os.path.join(os.sep, 'epi2melabs', '.epi2melabsmeta')
 
 
 def _send_ping(data, session, hostname=None, opsys=None):
@@ -42,13 +41,16 @@ def _send_ping(data, session, hostname=None, opsys=None):
 class Pingu(object):
     """Manage the sending of multiple pings."""
 
-    def __init__(self, session=None, enabled=True):
+    def __init__(self, session=None, enabled=True, config=CONTAINER_META):
         """Initialize pinger.
 
         :param session: a UUID session identifier.
         :param enabled: if disabled methods sending pings will not send
             data but rather return it to the caller. When enabled the
-            HTTP request response code is returned.
+            HTTP request response code is returned. This setting is
+            overridden by the contents of the config file.
+        :param config: a config (ini) file. Settings in the file will
+            override values from the environment and keyword arguments.
         """
         if session is None:
             session = uuid.uuid4()
@@ -64,6 +66,7 @@ class Pingu(object):
             config.read(CONTAINER_META)
             self.hostname = config['Host']['hostname']
             self.opsys = config['Host']['operating_system']
+            self.enabled = bool(config['Pings']['enabled'])
         except Exception:
             self.hostname = socket.gethostname()
             self.opsys = platform.platform()
