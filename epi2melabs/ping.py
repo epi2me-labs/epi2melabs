@@ -59,17 +59,17 @@ class Pingu(object):
                 raise ValueError('`session` should be a uuid.UUID object')
         self.session = session
         self.enabled = enabled
+        self.hostname = socket.gethostname()
+        self.opsys = platform.platform()
         self.state = None
-        self.hostname = None
         try:
             config = configparser.ConfigParser()
             config.read(CONTAINER_META)
+            self.enabled = config['Pings'].getboolean('enabled')
             self.hostname = config['Host']['hostname']
             self.opsys = config['Host']['operating_system']
-            self.enabled = bool(config['Pings']['enabled'])
         except Exception:
-            self.hostname = socket.gethostname()
-            self.opsys = platform.platform()
+            pass
 
     def send_container_ping(
             self, action, container_stats, image_name, message=None):
