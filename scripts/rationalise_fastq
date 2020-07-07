@@ -71,7 +71,7 @@ elif [[ -d "${INPUT}" ]]; then
     flist=$(mktemp)
     nfiles=$(find ${INPUT} -type f \( \
         -iname '*.fastq' -o -iname '*.fastq.gz' -o -iname '*.fq' -o -iname '*.fq.gz' \
-        ! -iname ${OUTPUT} \) | tee ${flist} | wc -l)
+        ! -wholename ${OUTPUT} \) | tee ${flist} | wc -l)
     echo "Found ${nfiles} files."
     ext=""
     for fname in $(cat ${flist}); do
