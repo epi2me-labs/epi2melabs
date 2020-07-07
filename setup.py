@@ -68,7 +68,7 @@ setup(
     data_files=data_files,
     entry_points={
         'console_scripts': [
-            #'name' = {}.package.module:function'.format(__pkg_name__)
+            'cecho = {}.notebook:cecho'.format(__pkg_name__)
         ]
     },
     scripts=[
