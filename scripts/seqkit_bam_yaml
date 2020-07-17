@@ -1,0 +1,12 @@
+#!/bin/bash
+
+# A wrapper around `seqkit bam` to allow the YAML driven filtering/output
+# to be used from a notebook.
+#
+# Usage: cat input.bam | seqkit_bam_yaml filter.yaml ...
+# with ... any options for seqkit bam
+
+input="-"
+yaml=$1
+
+cat $input | seqkit bam -T '{Yaml: "'${yaml}'"}' "${@:2}"
