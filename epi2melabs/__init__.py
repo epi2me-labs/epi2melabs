@@ -2,6 +2,6 @@
 import os
 
 
-__version__ = "0.0.7"
+__version__ = "0.0.8"
 
 CONTAINER_META = os.path.join(os.sep, 'epi2melabs', '.epi2melabsmeta')
