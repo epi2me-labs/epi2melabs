@@ -74,5 +74,6 @@ setup(
     scripts=[
         'scripts/concatenate_fastqs',
         'scripts/rationalise_fastq',
-        'scripts/run']
+        'scripts/run',
+        'scripts/seqkit_bam_yaml']
 )
