@@ -31,7 +31,7 @@ fi
 envs=$(find ${CONDA_DIR}/envs/ -wholename "${CONDA_DIR}/envs/*/bin/${CMD}")
 if [ -z "${envs}" ]; then
     # no env found, just run args as given
-    $@
+    $CMD ${ARGS[@]}
 else
     readarray -t paths <<<"${envs}"
     name=$(basename $(dirname $(dirname ${paths[0]})))
