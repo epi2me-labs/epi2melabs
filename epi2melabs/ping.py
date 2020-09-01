@@ -17,7 +17,8 @@ def _send_ping(data, session, hostname=None, opsys=None):
     :param data: a dictionary containing the data to send (should be
         json serializable).
 
-    :returns: status code of HTTP request.
+    :returns: status code of HTTP request. Returns 503 if requests library
+        throws an exception.
     """
     if not isinstance(session, uuid.UUID):
         raise ValueError('`session` should be a uuid.UUID object')
@@ -33,9 +34,10 @@ def _send_ping(data, session, hostname=None, opsys=None):
     ping.update(data)
     try:
         r = requests.post(ENDPOINT, json=ping)
-    except Exception as e:
-        print(e)
-    return r.status_code
+    except Exception:
+        return 503  # "Unavailable"
+    else:
+        return r.status_code
 
 
 class Pingu(object):
