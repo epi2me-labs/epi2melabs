@@ -1,0 +1,111 @@
+#!/bin/bash
+
+usage="
+$(basename "$0") [-h] [-i -o]
+
+    Consolidate fastq(.gz) files.
+
+    -h  show this help text.
+    -i  input file or directory.
+    -o  output file. If input file is a single file a symlink is made
+        otherwise the output is the concatenation of all files found.
+        If the output file has the extension '.gz' the final output
+        will be compressed, else it will be plain text."
+
+iflag=false
+oflag=false
+while getopts ':hi:o:' option; do
+  case "$option" in
+    h) echo "$usage"; exit;;
+    i) INPUT=$OPTARG; iflag=true;;
+    o) OUTPUT=$OPTARG oflag=true;;
+    :) printf "missing argument for -%s\n" "$OPTARG" >&2
+       echo "$usage" >&2
+       exit 1;;
+   \?) printf "illegal option: -%s\n" "$OPTARG" >&2
+       echo "$usage" >&2
+       exit 1;;
+  esac
+done
+shift $((OPTIND - 1))
+
+if ! $iflag || ! $oflag ; then
+    echo "$usage" >&2
+    echo "" >&2
+    echo "Both -i and -o must be specified."
+    exit 1
+fi
+
+function abspath {
+    echo "$(cd "$(dirname "$1")"; pwd -P)/$(basename "$1")"
+}
+
+function extension {
+    filename=$(basename -- "$1")
+    echo "${filename##*.}"
+}
+export -f extension
+
+INPUT=$(abspath $INPUT)
+OUTPUT=$(abspath $OUTPUT)
+OUTEXT=$(extension $OUTPUT)
+
+echo "Input: ${INPUT}"
+echo "Output: ${OUTPUT}"
+
+if [[ -e "${OUTPUT}" ]]; then
+    echo "Output exists, exiting"
+    exit 1
+fi
+
+if [[ ! -e "${INPUT}" ]]; then
+    echo "Error: ${INPUT} does not exist."
+    exit 1
+fi
+
+if [[ -f "${INPUT}" ]]; then
+    echo "Single file detected."
+    INEXT=$(extension $INPUT)
+    if [[ "$OUTEXT" == "$INEXT" ]]; then
+        echo "- Creating symlink."
+        ln -s ${INPUT} ${OUTPUT} \
+            && echo "Created symlink ${OUTPUT}" \
+            || (cecho "Failed to create symlink ${OUTPUT}" && exit 1)
+    elif [[ "$OUTEXT" == "gz" ]]; then
+        echo -n " - Compressing input..."
+        gzip ${INPUT} -c > ${OUTPUT}
+        echo "done."
+    else
+        echo -n " - Decompressing input..."
+        gzip -d -c ${INPUT} > ${OUTPUT}
+        echo "done."
+    fi
+
+elif [[ -d "${INPUT}" ]]; then
+    echo "Directory detected, concatenating found files."
+    flist=$(mktemp)
+    nfiles=$(find ${INPUT} -type f \( \
+        -iname '*.fastq' -o -iname '*.fastq.gz' -o -iname '*.fq' -o -iname '*.fq.gz' \
+        ! -wholename ${OUTPUT} \) | tee ${flist} | wc -l)
+    echo " - Found ${nfiles} files."
+    ext=""
+    for fname in $(cat ${flist}); do
+        newext=$(extension ${fname})
+        if [[ -z "${ext}" ]]; then
+            ext=${newext}
+        elif [[ ${ext} != ${newext} ]]; then
+            echo " - Multiple file extensions found, exiting"
+            exit 1
+        fi
+    done
+    echo -n " - Concatenating files..."
+    if [[ "$ext" == "gz" ]] && [[ "$OUTEXT" != "gz" ]]; then
+        cat ${flist} | xargs cat | gzip -d > ${OUTPUT}
+    elif [[ "$ext" != "gz" ]] && [[ "$OUTEXT" == "gz" ]]; then
+        cat ${flist} | xargs cat | gzip > ${OUTPUT}
+    else
+        cat ${flist} | xargs cat > ${OUTPUT}
+    fi
+    echo "done."
+    rm ${flist}
+fi
