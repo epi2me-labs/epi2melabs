@@ -106,7 +106,7 @@ class InputSpec:
 class InputForm:
     """Easily create an input form in a notebook and store values."""
 
-    def __init__(self, *args):
+    def __init__(self, *args, widget_width='400px', description_width='150px'):
         """Initialize a form.
 
         :param args: args should be each an `InputSpec`.
@@ -132,28 +132,54 @@ class InputForm:
         >>>         widgets.IntSlider(value=-3, max=30, min=-10)))
         >>> inputs.display()
         """
-        self.widgets = dict()
+        self.widgets = dict()   # value holding widgets
+        self._widgets = dict()  # for display
         self.options = args
         for option in self.options:
             if option.long_desc is not None:
-                self.widgets['{}_desc'.format(option.key)] = \
+                self._widgets['{}_desc'.format(option.key)] = \
                     widgets.HTML(option.long_desc)
             setter = functools.partial(self._set_value, self)
             setter.__name__ = 'setter_{}'.format(option.key)
-            if isinstance(option.widget_spec, dict):
-                # handles things like int sliders given as min=, max=
-                widget = widgets.interactive(setter, **option.widget_spec)
-            else:
-                spec = {'value': option.widget_spec}
-                widget = widgets.interactive(setter, **spec)
-            widget.__dict__['kwargs_widgets'][0].description = \
-                option.description
+            # create interactive widget, saves writing callback,
+            # .result on the object gives the current value
+            spec = {'value': option.widget_spec}
+            widget = widgets.interactive(setter, **spec)
+            # grab the useful part of the above and manipulate for consistency
+            wid = widget.children[0]
+            wid.description = ''
+            wid.style.description_width = '0px'
+            wid.layout = widgets.Layout(width=widget_width)
+            # add label in a consistent manner
+            self._widgets[option.key] = widgets.HBox([
+                widgets.Label(
+                    option.description,
+                    layout=widgets.Layout(width=description_width)),
+                widget])
             self.widgets[option.key] = widget
+
+    def add_process_button(self, callback):
+        """Add a button to do something with current values.
+
+        :param callback: a function, should accept this class
+            as a single argument. The intention here is the callback
+            can mutate the class to add additional attributes after
+            performing some work.
+        """
+        self._widgets['enter_button'] = widgets.Button(
+            description='Enter', icon='angle-right')
+        self._widgets['process_output'] = widgets.Output()
+
+        def on_butt_clicked(b):
+            with self._widgets['process_output']:
+                display.clear_output()
+                callback(self)
+
+        self._widgets['enter_button'].on_click(on_butt_clicked)
 
     def display(self):
         """Display the input form."""
-        for key, value in self.widgets.items():
-            display.display(value)
+        display.display(widgets.VBox([*self._widgets.values()]))
 
     def validate(self):
         """Validate inputs.
