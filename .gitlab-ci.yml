@@ -36,3 +36,10 @@ deploy:pypi:
         - twine upload dist/*.tar.gz
     only:
         - tags
+        
+deploy:trigger:
+    stage: deploy
+    trigger: epi2melabs/nanolabs
+    only:
+        - tags
+
