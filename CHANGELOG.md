@@ -10,3 +10,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Provide fixed grid formatting to notebooks forms for better display
 
+## [0.0.13]
+### Added
+- Form submit via button now displays an "in-progress" state
