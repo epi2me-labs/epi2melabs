@@ -170,10 +170,22 @@ class InputForm:
             description='Enter', icon='angle-right')
         self._widgets['process_output'] = widgets.Output()
 
+        def set_button_idle():
+            self._widgets['enter_button'].description = 'Enter'
+            self._widgets['enter_button'].disabled = False
+            self._widgets['enter_button'].icon = 'angle-right'
+
+        def set_button_busy():
+            self._widgets['enter_button'].description = 'Processing'
+            self._widgets['enter_button'].disabled = True
+            self._widgets['enter_button'].icon = 'fa-spinner'
+
         def on_butt_clicked(b):
+            set_button_busy()
             with self._widgets['process_output']:
                 display.clear_output()
                 callback(self)
+                set_button_idle()
 
         self._widgets['enter_button'].on_click(on_butt_clicked)
 
